@@ -207,36 +207,23 @@ const VotingApp = () => {
         }
     };
 
-    const fetchPolls = async () => {
-        if (!wallet.publicKey) return;
+   const fetchPolls = async () => {
+    try {
+        const program = getProgram();
+        if (!program) return;
 
-        try {
-            const program = getProgram();
-            if (!program) return;
+        console.log('Fetching all polls for the program...');
+        const pollAccounts = await (program.account as any).poll.all();
 
-            console.log('Fetching polls for:', wallet.publicKey.toBase58());
-
-            const pollAccounts = await (program.account as any).poll.all([
-                {
-                    memcmp: {
-                        offset: 8,
-                        bytes: wallet.publicKey.toBase58(),
-                    },
-                },
-            ]);
-
-            console.log('Found polls:', pollAccounts.length);
-            setPolls(pollAccounts);
-        } catch (error) {
-            console.error('Error fetching polls:', error);
-            // Try again after a delay
-            setTimeout(() => {
-                if (wallet.publicKey) {
-                    fetchPolls();
-                }
-            }, 2000);
-        }
-    };
+        console.log('Found polls:', pollAccounts.length);
+        setPolls(pollAccounts);
+    } catch (error) {
+        console.error('Error fetching polls:', error);
+        setTimeout(() => {
+            fetchPolls();
+        }, 2000);
+    }
+};
 
     useEffect(() => {
         if (wallet.publicKey) {
