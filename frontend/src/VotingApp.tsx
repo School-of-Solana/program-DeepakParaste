@@ -28,10 +28,32 @@ const VotingApp = () => {
     const [polls, setPolls] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [darkMode, setDarkMode] = useState(true);
 
     const [newPollQuestion, setNewPollQuestion] = useState('');
     const [newPollCandidates, setNewPollCandidates] = useState(['', '', '']);
     const [allowMinusVote, setAllowMinusVote] = useState(true);
+
+    // Load theme preference from localStorage
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('votechain-theme');
+        if (savedTheme === 'light') {
+            setDarkMode(false);
+            document.documentElement.classList.add('light-mode');
+        }
+    }, []);
+
+    // Toggle dark/light mode
+    const toggleTheme = () => {
+        setDarkMode(!darkMode);
+        if (darkMode) {
+            document.documentElement.classList.add('light-mode');
+            localStorage.setItem('votechain-theme', 'light');
+        } else {
+            document.documentElement.classList.remove('light-mode');
+            localStorage.setItem('votechain-theme', 'dark');
+        }
+    };
 
     const getProgram = () => {
         if (!wallet.publicKey) return null;
@@ -207,23 +229,23 @@ const VotingApp = () => {
         }
     };
 
-   const fetchPolls = async () => {
-    try {
-        const program = getProgram();
-        if (!program) return;
+    const fetchPolls = async () => {
+        try {
+            const program = getProgram();
+            if (!program) return;
 
-        console.log('Fetching all polls for the program...');
-        const pollAccounts = await (program.account as any).poll.all();
+            console.log('Fetching all polls for the program...');
+            const pollAccounts = await (program.account as any).poll.all();
 
-        console.log('Found polls:', pollAccounts.length);
-        setPolls(pollAccounts);
-    } catch (error) {
-        console.error('Error fetching polls:', error);
-        setTimeout(() => {
-            fetchPolls();
-        }, 2000);
-    }
-};
+            console.log('Found polls:', pollAccounts.length);
+            setPolls(pollAccounts);
+        } catch (error) {
+            console.error('Error fetching polls:', error);
+            setTimeout(() => {
+                fetchPolls();
+            }, 2000);
+        }
+    };
 
     useEffect(() => {
         if (wallet.publicKey) {
@@ -362,9 +384,13 @@ const VotingApp = () => {
                     <div className="title-section">
                         <h1 className="app-title">VoteChain</h1>
                         <p className="app-subtitle">Decentralized Democratic Voting on Solana</p>
-
                     </div>
-                    <WalletMultiButton />
+                    <div className="header-actions">
+                        <button onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
+                            {darkMode ? '☀️' : '🌙'}
+                        </button>
+                        <WalletMultiButton />
+                    </div>
                 </div>
             </header>
 
